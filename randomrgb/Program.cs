@@ -19,8 +19,11 @@ namespace randomrgb
 
             return colInt;
         }
+        
         static int[] GenerateInts(int number)
         {
+            //Console.WriteLine("The numbers");
+
             int[] ints = new int[number];
 
             var rand = new Random();
@@ -28,7 +31,7 @@ namespace randomrgb
             for (int i = 0; i < ints.Length; i++)
             {
                 ints[i] = rand.Next(0, 256);
-
+                //Console.WriteLine(ints[i]);
             }
 
 
@@ -38,27 +41,70 @@ namespace randomrgb
 
         static void Main(string[] args)
         {
-
-
-
-            // When we do it for real: 2046*1364*3 = 8380416
-            // make image X,y
-
             // size of the image: 
-            int xSizeInt = 1600;
-            int ySizeInt = 1600;
+            int xSizeInt = 1500;
+            int ySizeInt = 1500;
+            int numberofRawValues = xSizeInt * ySizeInt * 3;
 
 
             // make the actual image
             Image<Rgba32> image = new Image<Rgba32>(xSizeInt, ySizeInt);
+            Image<Rgba32> imageSorted = new Image<Rgba32>(xSizeInt, ySizeInt);
+            
             Console.WriteLine("image created");
 
             // GenerateInts()
-            int[] intArr = GenerateInts(xSizeInt * ySizeInt * 3);
+            int[] intArr = GenerateInts(numberofRawValues);
             Console.WriteLine("Ints created");
+
+            Console.WriteLine("The numbers");
+
+
+
+
+            // Sorting the data:
+            // This is an experiement
+            // Normally the data is very random and unusable for puzzles
+            // Sorting the intArr gives a grey image (which makes sense as the values would be close to each other),
+            // but sorting by one component at a time should give a friendlier puzzle image
+
+            int[] redValues = new int[xSizeInt * ySizeInt];
+            int[] blueValues = new int[xSizeInt * ySizeInt];
+            int[] greenValues = new int[xSizeInt * ySizeInt];
+            int valueNumber = 0;
+
+            for (int i = 0; i < numberofRawValues; i = i + 3)
+            {
+                redValues[valueNumber] = intArr[i];
+                blueValues[valueNumber] = intArr[i + 1];
+                greenValues[valueNumber] = intArr[i + 2];
+                valueNumber++;
+            }
             
-            
-            // read the random data into pixels
+            // Actually sort the red values
+
+            Array.Sort(redValues);
+            //Array.Sort(blueValues);
+            //Array.Sort(greenValues);
+
+            int arraySortedPlacement = 0;
+            for (int y = 0; y < ySizeInt; y++)
+            {
+                for (int x = 0; x < xSizeInt; x++)
+                {
+                    imageSorted[x, y] = SetColor(redValues[arraySortedPlacement], blueValues[arraySortedPlacement], greenValues[arraySortedPlacement]);
+                    
+                    arraySortedPlacement++;
+
+                }
+
+            }
+            Console.WriteLine("Red sorted data written to image");
+            imageSorted.SaveAsPng("RedSorted.png");
+            Console.WriteLine("File written");
+
+
+            // read the random data into pixels: 
 
             // We increment this value at each position (x,y) by 3, then take the value at (arrayplacement, arrayplacement+1 and arrayplacement+2)
             // and put into the color value
@@ -77,6 +123,8 @@ namespace randomrgb
 
                 }
             }
+
+
             Console.WriteLine("random data written to image");
 
             // we now have an image size filled with random pixel data
